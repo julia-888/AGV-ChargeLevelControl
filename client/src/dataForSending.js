@@ -44,3 +44,7 @@ export const dataForSending = [{
     id: 15,
     level: 13
   }];
+
+export const setDataForSending = function(id, level) {
+  dataForSending[id-1].level = level;
+}

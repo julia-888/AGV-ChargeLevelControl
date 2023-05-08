@@ -7,8 +7,6 @@ import axios from 'axios';
 import styled from 'styled-components';
 import { dataForSending } from './dataForSending';
 
-// const src = "http://localhost:5000/Tasks"
-
 function App() {
   //массивы данных
   const [AGVs, setAGVs] = useState([]);
