@@ -1,8 +1,6 @@
 import { energyForTask } from "./energyForTask";
 
-export const energyIsEnough = function(distance, distanceWithCargo, cargo, currentChargeLevel) {
-    let En = energyForTask(distance, distanceWithCargo, cargo); //расчёт энергии для задачи
-
+export const energyIsEnough = function(En, currentChargeLevel) {
     //сравнение необходимой и оставшейся энергий и возврат результата
     const EOfAGV = 803520 * currentChargeLevel;
 

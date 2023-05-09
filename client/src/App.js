@@ -5,7 +5,11 @@ import BatteryLevel from './BatteryLevel';
 import ChargingStation from './ChargingStation';
 import axios from 'axios';
 import styled from 'styled-components';
-import { dataForSending } from './dataForSending';
+import { dataForSending, removeData } from './dataForSending';
+import { setDataForSending } from './dataForSending';
+import { energyForTask } from './functions/energyForTask';
+import { energyIsEnough } from './functions/energyIsEnough';
+import { energyToPercents } from './functions/energyToPercents';
 
 function App() {
   //массивы данных
@@ -26,7 +30,7 @@ function App() {
       .get("http://localhost:5000/AGVs")
       .then(data => {
         setAGVs(data.data);
-        console.log(data.data);
+        // console.log(data.data);
       });
 
     axios
@@ -38,9 +42,27 @@ function App() {
 
   }, []);
 
-  function handleClick(event) {
+  function handleClick() {
+    const time = tasks[0].startTime;
+    
+    for (let i = 0; i < tasks.length; i=i+1 ) {
+      const energy = energyForTask(tasks[i].distanceToStart, tasks[i].distanceToFinish, tasks[i].weight);
+      
+      //проверка достаточно ли энергии для выполнения задачи, если да, то заполнение поля level соответствующим значением, если нет, то null
+      energyIsEnough(energy, AGVs[tasks[i].idOfAGVPerforming-1].chargeLevel) ? 
+        setDataForSending(tasks[i].idOfAGVPerforming, energyToPercents(energy), i+1) : 
+        setDataForSending(tasks[i].idOfAGVPerforming, null);
+      if (tasks[i+1].startTime != time) {
+        break;
+      }
+
+    }
+
     axios
-      .put("http://localhost:5000/AGVs", {dataForSending}).then(data => setAGVs(data.data));
+      .put("http://localhost:5000/AGVs", {dataForSending}).then(data => console.log(data.data));
+
+    removeData();
+    
   }
   
 
@@ -73,7 +95,6 @@ function App() {
 }
 
 const Execute = styled.div`
-  /* height: 30px; */
   padding: 10px;
   width: 80px;
   margin: 30px;

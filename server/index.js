@@ -61,14 +61,15 @@ app.get('/Tasks', async (req, res) => {
 //  UPDATE
 app.put('/AGVs', async (req, res) => {
     try {
-        for (i=0; i < 15; i++){
-            const AGVsUpdate = await pool.query(
-                `UPDATE public."AGVs" SET "chargeLevel" = "chargeLevel"-$1 WHERE "idOfAGV" = $2`,
-                [req.body.dataForSending[i].level, req.body.dataForSending[i].id]);
-        }
+        res.send(req.body.dataForSending);
+        // for (i=0; i < 15; i++){
+        //     const AGVsUpdate = await pool.query(
+        //         `UPDATE public."AGVs" SET "chargeLevel" = "chargeLevel"-$1 WHERE "idOfAGV" = $2`,
+        //         [req.body.dataForSending[i].level, req.body.dataForSending[i].id]);
+        // }
         
-        const response = await pool.query(`SELECT * FROM public."AGVs" ORDER BY "idOfAGV"`);
-        res.json(response.rows);
+        // const response = await pool.query(`SELECT * FROM public."AGVs" ORDER BY "idOfAGV"`);
+        // res.json(response.rows);
     } catch (err) {
         console.error(err.message)
     }
