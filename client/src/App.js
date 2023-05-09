@@ -42,27 +42,35 @@ function App() {
 
   }, []);
 
-  function handleClick() {
-    const time = tasks[0].startTime;
-    
-    for (let i = 0; i < tasks.length; i=i+1 ) {
-      const energy = energyForTask(tasks[i].distanceToStart, tasks[i].distanceToFinish, tasks[i].weight);
-      
-      //проверка достаточно ли энергии для выполнения задачи, если да, то заполнение поля level соответствующим значением, если нет, то null
-      energyIsEnough(energy, AGVs[tasks[i].idOfAGVPerforming-1].chargeLevel) ? 
-        setDataForSending(tasks[i].idOfAGVPerforming, energyToPercents(energy), i+1) : 
-        setDataForSending(tasks[i].idOfAGVPerforming, null);
-      if (tasks[i+1].startTime != time) {
+
+  function findAGVById(id) {
+    let agv = {};
+    for (let i = 0; i < AGVs.length; i ++) {
+      if (AGVs[i].idOfAGV == id) {
+        agv = AGVs[i];
         break;
       }
-
     }
+    return agv;
+  }
 
+  function handleClick() {
+    console.log(tasks);
+
+    tasks.map(task => {
+      const energy = energyForTask(task.distanceToStart, task.distanceToFinish, task.weight);
+      
+      //проверка достаточно ли энергии для выполнения задачи, если да, то заполнение поля level соответствующим значением, если нет, то null
+      energyIsEnough(energy, findAGVById(task.idOfAGVPerforming).chargeLevel) ? 
+        setDataForSending(task.idOfAGVPerforming, energyToPercents(energy), task.idOfTask) : 
+        setDataForSending(task.idOfAGVPerforming, null, task.idOfTask);
+    })
+    
     axios
-      .put("http://localhost:5000/AGVs", {dataForSending}).then(data => console.log(data.data));
+      .put("http://localhost:5000/AGVs", {dataForSending}).then(data => { setAGVs(data.data.AGVs); setTasks(data.data.tasks); });
+        // console.log(data.data.AGVs); console.log(data.data.tasks); });
 
     removeData();
-    
   }
   
 
