@@ -1,5 +1,4 @@
 const axios = require('axios');
-// const axios = a();
 const express = require('express');
 const bodyParser = require("body-parser");
 const app = express();
@@ -21,9 +20,10 @@ app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 
 
-//  GET
+//  GET-запросы
 app.get("/", async (req, res) => {
     try{
+        //УБРАТЬ ЭТООООООООО1111111
         const article = { title: 'Axios POST Request Example' };
         await axios.post('http://localhost:5001/charging', {article}).then(response => res.send(response.data)).catch(err => console.log(err));
     
@@ -71,29 +71,31 @@ app.get('/Tasks', async (req, res) => {
     }
 });
 
+/**********************/
+//ФУНКЦИИ
 
-var munkres = require('munkres-js'); //используется реализованная 
-
+var munkres = require('munkres-js'); //используется реализованная функция
 const stationChoice = (dischargedIds) => { //по горизонтали погрузчики, по вертикали станции
     const matrix = [];
     for (let i=0; i < dischargedIds.length; i++) {
         matrix.push(dischargedIds[i].costs);
     }
-
    return munkres(matrix);
 }
 
 //  UPDATE
 app.put('/AGVs', async (req, res) => {
     try {
-        const dischargedIds = []; //массив, хранящий id погрузчиков, требующих зарядки
-        
+        let dischargedIds = []; //массив, хранящий id погрузчиков, требующих зарядки
+        const nulledIds = []; //данные для отправки в подсистему управления маршрутами
+
         for (let i=0; i < req.body.dataForSending.length; i++){
             if (req.body.dataForSending[i].level === null) { //если уровень null, то добавляется объект
                 dischargedIds.push({
                     id: req.body.dataForSending[i].id,
-                    costs : [1, 1, 1, 1, 1, 1],    //ПОМЕНЯЯЯЯЯЯЯЯЯЯЯТЬ!!!!!!!!!!!!!!
+                    costs : [],
                 });
+                nulledIds.push(req.body.dataForSending[i].id);
             }
             else { //обработка данных для неразряженных погрузчиков
                 const AGVsUpdate = await pool.query(
@@ -106,7 +108,11 @@ app.put('/AGVs', async (req, res) => {
             }
         }
 
+        await axios.post('http://localhost:5001/charging', {dischargedIds}).then(response => dischargedIds = (response.data)).catch(err => console.log(err));
+        
         const choosedStations = stationChoice(dischargedIds); //результаты распределения
+
+        await axios.post('http://localhost:5001/charging:routes', {dischargedIds, choosedStations}).then(response => console.log(response.data)).catch(err => console.log(err));
         ////////////////////////
         
         const response1 = await pool.query(`SELECT * FROM public."AGVs" ORDER BY "idOfAGV"`);
