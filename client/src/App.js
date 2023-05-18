@@ -23,21 +23,18 @@ function App() {
       .get("http://localhost:5000/Tasks")
       .then(data => {
         setTasks(data.data);
-        // console.log(data.data);
       });
 
     axios
       .get("http://localhost:5000/AGVs")
       .then(data => {
         setAGVs(data.data);
-        // console.log(data.data);
       });
 
     axios
       .get("http://localhost:5000/ChargingStations")
       .then(data => {
         setChargingStations(data.data);
-        // console.log(data.data);
       });
 
   }, []);
@@ -70,8 +67,7 @@ function App() {
 
     axios
       .put("http://localhost:5000/AGVs", {dataForSending}).then(data => { setAGVs(data.data.AGVs); setTasks(data.data.tasks); });
-        // console.log(data.data.AGVs); console.log(data.data.tasks); });
-
+      
     removeData();
   }
   

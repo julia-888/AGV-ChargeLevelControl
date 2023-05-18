@@ -24,8 +24,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 //  GET
 app.get("/", async (req, res) => {
     try{
-        res.send(`<h2>Welcome to the Charging Control Module!</h2>
-                <p>From this url you can look for current databases information</p>`);
+        const article = { title: 'Axios POST Request Example' };
+        await axios.post('http://localhost:5001/charging', {article}).then(response => res.send(response.data)).catch(err => console.log(err));
+    
     } catch (err) {
         console.error(err.message);
     }
@@ -71,14 +72,30 @@ app.get('/Tasks', async (req, res) => {
 });
 
 
+var munkres = require('munkres-js'); //используется реализованная 
+
+const stationChoice = (dischargedIds) => { //по горизонтали погрузчики, по вертикали станции
+    const matrix = [];
+    for (let i=0; i < dischargedIds.length; i++) {
+        matrix.push(dischargedIds[i].costs);
+    }
+
+   return munkres(matrix);
+}
+
 //  UPDATE
 app.put('/AGVs', async (req, res) => {
     try {
-        for (i=0; i < req.body.dataForSending.length; i++){
-            if (req.body.dataForSending[i].level === null) {
-                
+        const dischargedIds = []; //массив, хранящий id погрузчиков, требующих зарядки
+        
+        for (let i=0; i < req.body.dataForSending.length; i++){
+            if (req.body.dataForSending[i].level === null) { //если уровень null, то добавляется объект
+                dischargedIds.push({
+                    id: req.body.dataForSending[i].id,
+                    costs : [1, 1, 1, 1, 1, 1],    //ПОМЕНЯЯЯЯЯЯЯЯЯЯЯТЬ!!!!!!!!!!!!!!
+                });
             }
-            else {
+            else { //обработка данных для неразряженных погрузчиков
                 const AGVsUpdate = await pool.query(
                     `UPDATE public."AGVs" SET "chargeLevel" = "chargeLevel"-$1 WHERE "idOfAGV" = $2`,
                     [req.body.dataForSending[i].level, req.body.dataForSending[i].id]);
@@ -88,6 +105,9 @@ app.put('/AGVs', async (req, res) => {
                     [req.body.dataForSending[i].taskId]);
             }
         }
+
+        const choosedStations = stationChoice(dischargedIds); //результаты распределения
+        ////////////////////////
         
         const response1 = await pool.query(`SELECT * FROM public."AGVs" ORDER BY "idOfAGV"`);
         const response2 = await pool.query(`SELECT * FROM public."Tasks" WHERE "completed" != true AND "startTime" = (
