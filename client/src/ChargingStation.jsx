@@ -5,11 +5,14 @@ import styled from "styled-components";
 
 const ChargingStation = (props) => {
   return (
-    <Station color={props.status ? "springgreen" : "tomato"}>
-      <AGVNumber>
-        {props.id}
-      </AGVNumber>
-    </Station>
+    <ChargingWrap>
+      <Station color={props.status ? "springgreen" : "tomato"}>
+        <AGVNumber>
+          {props.id}
+        </AGVNumber>
+      </Station>
+      {props.status && <span> До конца зарядки осталос: 45 %</span>}
+    </ChargingWrap>
   );
 };
 
@@ -22,6 +25,7 @@ const Station = styled.div`
     border: solid black 2px;
     
     margin-left: 60px;
+    margin-bottom: 30px;
     background-color: ${p => p.color};
 
     display: flex;
@@ -31,6 +35,13 @@ const Station = styled.div`
 
 const Container = styled.div`
   display: flex;
+`
+
+const ChargingWrap = styled.div`
+  display: flex;
+  width: 80%;
+  justify-content: space-between;
+  margin: 30px 0 80px 0;
 `
 
 const AGVNumber = styled.div`

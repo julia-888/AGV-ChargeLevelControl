@@ -88,14 +88,13 @@ function App() {
       })}
 
       <h3>Зарядные станции</h3>
-      <ChargingWrap>
+      <div>
       {chargingStations.map(chargingStation => {
         return(
           <ChargingStation id={chargingStation.idOfChargingStation} status={chargingStation.status}/>
         );
       })}
-      </ChargingWrap>
-
+      </div>
     </div>
   );
 }
@@ -109,13 +108,6 @@ const Execute = styled.div`
   border-radius: 10px;
 
   cursor: pointer;
-`
-
-const ChargingWrap = styled.div`
-  display: flex;
-  width: 80%;
-  justify-content: space-between;
-  margin: 30px 0 80px 0;
 `
 
 
