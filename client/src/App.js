@@ -66,6 +66,8 @@ function App() {
         setDataForSending(task.idOfAGVPerforming, null, task.idOfTask);
     })
     
+    console.log(dataForSending);
+
     axios
       .put("http://localhost:5000/AGVs", {dataForSending}).then(data => { setAGVs(data.data.AGVs); setTasks(data.data.tasks); });
         // console.log(data.data.AGVs); console.log(data.data.tasks); });
