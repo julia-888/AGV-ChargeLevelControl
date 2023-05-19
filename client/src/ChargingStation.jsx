@@ -11,7 +11,7 @@ const ChargingStation = (props) => {
           {props.id}
         </AGVNumber>
       </Station>
-      {props.status && <span> До конца зарядки осталос: 45 %</span>}
+      {!props.status && <span> До конца зарядки осталос: 45 %</span>}
     </ChargingWrap>
   );
 };

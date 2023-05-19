@@ -52,8 +52,6 @@ function App() {
   }
 
   function handleClick() {
-    console.log(tasks);
-
     tasks.map(task => {
       const energy = energyForTask(task.distanceToStart, task.distanceToFinish, task.weight);
       
@@ -66,9 +64,13 @@ function App() {
     console.log(dataForSending);
 
     axios
-      .put("http://localhost:5000/AGVs", {dataForSending}).then(data => { setAGVs(data.data.AGVs); setTasks(data.data.tasks); });
+      .put("http://localhost:5000/AGVs", {dataForSending})
+      .then(data => { setAGVs(data.data.AGVs); setChargingStations(data.data.chargingStations); setTasks(data.data.tasks); });
       
     removeData();
+
+    console.log(chargingStations);
+    console.log(AGVs);
   }
   
 
@@ -83,7 +85,7 @@ function App() {
       <h3>Погрузчики</h3>
       {AGVs.map(agv => {
         return(
-          <BatteryLevel completed={agv.chargeLevel} id={agv.idOfAGV}  />
+          <BatteryLevel completed={agv.chargeLevel} id={agv.idOfAGV} status={agv.status} idOfStationConnected={agv.idOfStationConnected}/>
         );
       })}
 

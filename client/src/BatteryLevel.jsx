@@ -10,9 +10,13 @@ const BatteryLevel = (props) => {
         {props.id}
       </AGVNumber>
       <Battery>
-        <Level bgColor={props.completed < 70 ? props.completed <=30 ? 'tomato' : 'gold' : 'springgreen'} completed={props.completed}>
-          <LevelLabel>{`${props.completed}%`}</LevelLabel>
-        </Level>
+        {
+          props.status ?
+          (<Level bgColor={props.completed < 70 ? props.completed <=30 ? 'tomato' : 'gold' : 'springgreen'} completed={props.completed}>
+             <LevelLabel>{`${props.completed}%`}</LevelLabel>
+           </Level>) 
+           : (<p>Заряжается у станции номер {props.idOfStationConnected}</p>)
+        }
       </Battery>
     </Container>
   );
@@ -35,7 +39,7 @@ const Level = styled.div`
 `
 
 const Battery = styled.div`
-  height: 20px;
+  height: 40px;
   width: 80vw;
   border: solid black 2px;
   border-radius: 50px;

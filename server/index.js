@@ -23,10 +23,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 //  GET-запросы
 app.get("/", async (req, res) => {
     try{
-        //УБРАТЬ ЭТООООООООО1111111
-        const article = { title: 'Axios POST Request Example' };
-        await axios.post('http://localhost:5001/charging', {article}).then(response => res.send(response.data)).catch(err => console.log(err));
-    
+        res.send(`<h2>Welcome to the charge control module!</h2>`);    
     } catch (err) {
         console.error(err.message);
     }
@@ -71,7 +68,7 @@ app.get('/Tasks', async (req, res) => {
     }
 });
 
-/**********************/
+
 //ФУНКЦИИ
 
 var munkres = require('munkres-js'); //используется реализованная функция
@@ -108,18 +105,36 @@ app.put('/AGVs', async (req, res) => {
             }
         }
 
-        await axios.post('http://localhost:5001/charging', {dischargedIds}).then(response => dischargedIds = (response.data)).catch(err => console.log(err));
-        
-        const choosedStations = stationChoice(dischargedIds); //результаты распределения
 
-        await axios.post('http://localhost:5001/charging:routes', {dischargedIds, choosedStations}).then(response => console.log(response.data)).catch(err => console.log(err));
-        ////////////////////////
+        //если массив разряженных погрузчиков чем-то заполнен, то:
+        if (dischargedIds.length != 0) {
+            await axios.post('http://localhost:5001/charging', {dischargedIds}).then(response => dischargedIds = (response.data)).catch(err => console.log(err));
+        
+            const choosedStations = stationChoice(dischargedIds); //результаты распределения
+
+            await axios.post('http://localhost:5001/charging:routes', {dischargedIds, choosedStations}).then(response => console.log(response.data)).catch(err => console.log(err));
+        
+            
+            for (let i=0; i < choosedStations.length; i++) {
+                const connectToStationQuery = await pool.query(
+                    `UPDATE public."ChargingStations" SET "status" = false WHERE "idOfChargingStation" = $1`,
+                    [choosedStations[i][1] + 1]
+                );
+    
+                const goToStationQuery = await pool.query(
+                    `UPDATE public."AGVs" SET "idOfStationConnected" = $1, "status"=false WHERE "idOfAGV" = $2`,
+                    [choosedStations[i][1] + 1, dischargedIds[i].id]
+                );
+            }
+        }
         
         const response1 = await pool.query(`SELECT * FROM public."AGVs" ORDER BY "idOfAGV"`);
-        const response2 = await pool.query(`SELECT * FROM public."Tasks" WHERE "completed" != true AND "startTime" = (
-                                            SELECT "startTime" FROM public."Tasks" WHERE completed = false ORDER BY "idOfTask" LIMIT 1)`);
+        const response2 = await pool.query(`SELECT * FROM public."ChargingStations" ORDER BY "idOfChargingStation"`);
+        const response3 = await pool.query(`SELECT * FROM public."Tasks" WHERE "completed" != true AND "startTime" = (
+                                            SELECT "startTime" FROM public."Tasks" WHERE "completed" = false ORDER BY "idOfTask" LIMIT 1)`);
         
-        res.json({AGVs: response1.rows, tasks: response2.rows});
+        console.log(response2.rows);
+        res.json({AGVs: response1.rows, chargingStations: response2.rows, tasks: response3.rows});
     } catch (err) {
         console.error(err.message)
     }

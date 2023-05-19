@@ -8,7 +8,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())  
 
 app.get("/", function(req, res) {
-    res.send(`hey!`);
+    res.send(`<h2>Welcome to the route management module!</h2>`);
 })
 
 
