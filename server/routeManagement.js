@@ -39,12 +39,6 @@ const countCosts = (idOfAGV) => {
              оригинальная функция, со всеми необходимыми расчётами заменена на рандомный выбор *******/
 }
 
-//функция нахождения нового погрузчика
-const replaceAGVForTask = (taskID) => {
-
-}
-
-
 // post-запрос для расчёта стоимостей
 app.post('/charging', (req, res) => { 
     let dischargedIds = req.body.dischargedIds;
@@ -65,7 +59,7 @@ app.post('/charging:routes', (req, res) => {
 //put-запрос на назначение нового погрузчика на задачу
 app.put('/charging:replaceAGVForTask', async (req, res) => {
     for (let i=0; i < req.body.idsOfTasksNulled.length; i++) {
-        const newAGV = Math.ceil(Math.random() * (15-1) + 1); // рандомный выбор введён для имитации
+        const newAGV = Math.ceil(Math.random() * (15-1) + 1 != req.body.idsOfTasksNulled[i]); // рандомный выбор введён для имитации
         const replace = await pool.query(
             `UPDATE public."Tasks" SET "idOfAGVPerforming" = $1 WHERE "idOfTask" = $2`,
             [newAGV, req.body.idsOfTasksNulled[i]]);

@@ -88,12 +88,14 @@ app.put('/AGVs', async (req, res) => {
 
         for (let i=0; i < req.body.dataForSending.length; i++){
             if (req.body.dataForSending[i].level === null) { //если уровень null, то добавляется объект
-                dischargedIds.push({
-                    id: req.body.dataForSending[i].id,
-                    costs : [],
-                });
-                idsOfTasksNulled.push(req.body.dataForSending[i].taskId);
-                
+                //проверка того, не стоит ли погрузчик уже на зарядке. для чего просматривается статус погрузчика в бд.
+                if (await pool.query(`SELECT "status" FROM "public"."AGVs" WHERE "idOfAGV" = $1`, [req.body.dataForSending[i].id])) {
+                    dischargedIds.push({
+                        id: req.body.dataForSending[i].id,
+                        costs : [],
+                    });
+                }
+                idsOfTasksNulled.push(req.body.dataForSending[i].taskId);                
             }
             else { //обработка данных для неразряженных погрузчиков
                 const AGVsUpdate = await pool.query(
@@ -127,9 +129,6 @@ app.put('/AGVs', async (req, res) => {
                     `UPDATE public."AGVs" SET "idOfStationConnected" = $1, "status"=false WHERE "idOfAGV" = $2`,
                     [choosedStations[i][1] + 1, dischargedIds[i].id]
                 );
-
-                
-
             }
         }
         
