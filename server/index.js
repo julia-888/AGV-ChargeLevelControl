@@ -84,7 +84,7 @@ const stationChoice = (dischargedIds) => { //по горизонтали пог�
 app.put('/AGVs', async (req, res) => {
     try {
         let dischargedIds = []; //массив, хранящий id погрузчиков, требующих зарядки
-        const nulledIds = []; //данные для отправки в подсистему управления маршрутами
+        const idsOfTasksNulled = []; //данные для отправки, для выдачи задач другим погрузчикам
 
         for (let i=0; i < req.body.dataForSending.length; i++){
             if (req.body.dataForSending[i].level === null) { //если уровень null, то добавляется объект
@@ -92,7 +92,8 @@ app.put('/AGVs', async (req, res) => {
                     id: req.body.dataForSending[i].id,
                     costs : [],
                 });
-                nulledIds.push(req.body.dataForSending[i].id);
+                idsOfTasksNulled.push(req.body.dataForSending[i].taskId);
+                
             }
             else { //обработка данных для неразряженных погрузчиков
                 const AGVsUpdate = await pool.query(
@@ -114,6 +115,7 @@ app.put('/AGVs', async (req, res) => {
 
             await axios.post('http://localhost:5001/charging:routes', {dischargedIds, choosedStations}).then(response => console.log(response.data)).catch(err => console.log(err));
         
+            await axios.put('http://localhost:5001/charging:replaceAGVForTask', {idsOfTasksNulled}).then(response => console.log(response.data)).catch(err => console.log(err));
             
             for (let i=0; i < choosedStations.length; i++) {
                 const connectToStationQuery = await pool.query(
@@ -125,6 +127,9 @@ app.put('/AGVs', async (req, res) => {
                     `UPDATE public."AGVs" SET "idOfStationConnected" = $1, "status"=false WHERE "idOfAGV" = $2`,
                     [choosedStations[i][1] + 1, dischargedIds[i].id]
                 );
+
+                
+
             }
         }
         

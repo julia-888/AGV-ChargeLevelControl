@@ -7,6 +7,19 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())  
 
+const Pool = require("pg").Pool;
+
+const pool = new Pool({
+    user: "postgres",
+    password: "6059",
+    database: "database",
+    host: "localhost",
+    port: 3060,
+    schema: "public",
+});
+
+
+
 app.get("/", function(req, res) {
     res.send(`<h2>Welcome to the route management module!</h2>`);
 })
@@ -26,6 +39,12 @@ const countCosts = (idOfAGV) => {
              оригинальная функция, со всеми необходимыми расчётами заменена на рандомный выбор *******/
 }
 
+//функция нахождения нового погрузчика
+const replaceAGVForTask = (taskID) => {
+
+}
+
+
 // post-запрос для расчёта стоимостей
 app.post('/charging', (req, res) => { 
     let dischargedIds = req.body.dischargedIds;
@@ -41,6 +60,17 @@ app.post('/charging:routes', (req, res) => {
     choosed = req.body.choosedStations;
     //.... обработка данных
     res.send(`success`);
+})
+
+//put-запрос на назначение нового погрузчика на задачу
+app.put('/charging:replaceAGVForTask', async (req, res) => {
+    for (let i=0; i < req.body.idsOfTasksNulled.length; i++) {
+        const newAGV = Math.ceil(Math.random() * (15-1) + 1); // рандомный выбор введён для имитации
+        const replace = await pool.query(
+            `UPDATE public."Tasks" SET "idOfAGVPerforming" = $1 WHERE "idOfTask" = $2`,
+            [newAGV, req.body.idsOfTasksNulled[i]]);
+    }
+    res.send(`new AGV is appointed`);
 })
 
 app.listen(5001, () => {

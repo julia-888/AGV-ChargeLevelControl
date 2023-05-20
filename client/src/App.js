@@ -69,8 +69,7 @@ function App() {
       
     removeData();
 
-    console.log(chargingStations);
-    console.log(AGVs);
+    console.log(tasks);
   }
   
 
