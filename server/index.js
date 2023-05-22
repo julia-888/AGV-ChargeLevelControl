@@ -19,7 +19,6 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 
-
 //  GET-запросы
 app.get("/", async (req, res) => {
     try{
@@ -70,7 +69,6 @@ app.get('/Tasks', async (req, res) => {
 
 
 //ФУНКЦИИ
-
 var munkres = require('munkres-js'); //используется реализованная функция
 const stationChoice = (dischargedIds) => { //по горизонтали погрузчики, по вертикали станции
     const matrix = [];
@@ -86,16 +84,23 @@ app.put('/AGVs', async (req, res) => {
         let dischargedIds = []; //массив, хранящий id погрузчиков, требующих зарядки
         const idsOfTasksNulled = []; //данные для отправки, для выдачи задач другим погрузчикам
 
+        //повышение уровня заряжающихся погрузчиков и снятие с зарядки зарядившихся
+        const increaseLevel = await pool.query(`UPDATE public."ChargingStations" SET "level" = "level"+5 WHERE "status" = false`);
+        const disconnectingAGVUpdate = await pool.query(`UPDATE public."AGVs" SET "idOfStationConnected" = null, "status" = true, "chargeLevel" = 100
+                                                         WHERE "idOfStationConnected" = (SELECT "idOfChargingStation" from public."ChargingStations" WHERE "level"=100)`);
+        const disconnectingStationUpdate = await pool.query(`UPDATE public."ChargingStations" SET "level" = null, "status" = true WHERE "level" = 100`);
+        
+
         for (let i=0; i < req.body.dataForSending.length; i++){
             if (req.body.dataForSending[i].level === null) { //если уровень null, то добавляется объект
                 //проверка того, не стоит ли погрузчик уже на зарядке. для чего просматривается статус погрузчика в бд.
-                if (await pool.query(`SELECT "status" FROM "public"."AGVs" WHERE "idOfAGV" = $1`, [req.body.dataForSending[i].id])) {
+                if ((await pool.query(`SELECT "status" FROM public."AGVs" WHERE "idOfAGV" = $1`, [req.body.dataForSending[i].id])).rows[0].status) {
                     dischargedIds.push({
                         id: req.body.dataForSending[i].id,
                         costs : [],
                     });
                 }
-                idsOfTasksNulled.push(req.body.dataForSending[i].taskId);                
+                idsOfTasksNulled.push(req.body.dataForSending[i].taskId);            
             }
             else { //обработка данных для неразряженных погрузчиков
                 const AGVsUpdate = await pool.query(
@@ -108,20 +113,23 @@ app.put('/AGVs', async (req, res) => {
             }
         }
 
+        //если есть невыполненные задачи
+        if (idsOfTasksNulled.length != 0) {
+            await axios.put('http://localhost:5001/charging:replaceAGVForTask', {idsOfTasksNulled}).then(response => console.log(response.data)).catch(err => console.log(err));
+        }
 
         //если массив разряженных погрузчиков чем-то заполнен, то:
         if (dischargedIds.length != 0) {
             await axios.post('http://localhost:5001/charging', {dischargedIds}).then(response => dischargedIds = (response.data)).catch(err => console.log(err));
         
             const choosedStations = stationChoice(dischargedIds); //результаты распределения
+            console.log(choosedStations);
 
             await axios.post('http://localhost:5001/charging:routes', {dischargedIds, choosedStations}).then(response => console.log(response.data)).catch(err => console.log(err));
         
-            await axios.put('http://localhost:5001/charging:replaceAGVForTask', {idsOfTasksNulled}).then(response => console.log(response.data)).catch(err => console.log(err));
-            
             for (let i=0; i < choosedStations.length; i++) {
                 const connectToStationQuery = await pool.query(
-                    `UPDATE public."ChargingStations" SET "status" = false WHERE "idOfChargingStation" = $1`,
+                    `UPDATE public."ChargingStations" SET "status" = false, "level" = 25 WHERE "idOfChargingStation" = $1`,
                     [choosedStations[i][1] + 1]
                 );
     
@@ -137,7 +145,7 @@ app.put('/AGVs', async (req, res) => {
         const response3 = await pool.query(`SELECT * FROM public."Tasks" WHERE "completed" != true AND "startTime" = (
                                             SELECT "startTime" FROM public."Tasks" WHERE "completed" = false ORDER BY "idOfTask" LIMIT 1)`);
         
-        console.log(response2.rows);
+        // console.log(response2.rows);
         res.json({AGVs: response1.rows, chargingStations: response2.rows, tasks: response3.rows});
     } catch (err) {
         console.error(err.message)

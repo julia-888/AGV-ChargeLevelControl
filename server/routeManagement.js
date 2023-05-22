@@ -18,8 +18,6 @@ const pool = new Pool({
     schema: "public",
 });
 
-
-
 app.get("/", function(req, res) {
     res.send(`<h2>Welcome to the route management module!</h2>`);
 })
@@ -58,13 +56,15 @@ app.post('/charging:routes', (req, res) => {
 
 //put-запрос на назначение нового погрузчика на задачу
 app.put('/charging:replaceAGVForTask', async (req, res) => {
+    const news = []
     for (let i=0; i < req.body.idsOfTasksNulled.length; i++) {
-        const newAGV = Math.ceil(Math.random() * (15-1) + 1 != req.body.idsOfTasksNulled[i]); // рандомный выбор введён для имитации
+        const newAGV = Math.floor(Math.random() * (16-1)) + 1; // рандомный выбор введён для имитации
         const replace = await pool.query(
             `UPDATE public."Tasks" SET "idOfAGVPerforming" = $1 WHERE "idOfTask" = $2`,
             [newAGV, req.body.idsOfTasksNulled[i]]);
+        news.push(newAGV);
     }
-    res.send(`new AGV is appointed`);
+    res.send(news);
 })
 
 app.listen(5001, () => {
