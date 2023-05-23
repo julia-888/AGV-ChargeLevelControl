@@ -40,7 +40,6 @@ const countCosts = (stations) => {
 // post-запрос для расчёта стоимостей
 app.post('/charging:getCosts', async(req, res) => { 
     let dischargedIds = req.body.dischargedIds;
-    // const stations =  await pool.query(`SELECT "idOfChargingStation" FROM public."ChargingStations" WHERE "status"=true`);
     for (let i=0; i < dischargedIds.length; i++) {
         dischargedIds[i].costs = countCosts(
             (await pool.query(`SELECT "idOfChargingStation" FROM public."ChargingStations" WHERE "status"=true`)).rows);

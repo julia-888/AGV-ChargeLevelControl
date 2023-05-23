@@ -107,6 +107,7 @@ const Execute = styled.div`
   border: solid green 2px;
   border-radius: 10px;
 
+  user-select: none;
   cursor: pointer;
   font-weight: lighter;
 

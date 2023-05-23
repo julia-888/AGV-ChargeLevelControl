@@ -91,7 +91,7 @@ app.put('/AGVs', async (req, res) => {
         //повышение уровня заряжающихся погрузчиков и снятие с зарядки зарядившихся
         const increaseLevel = await pool.query(`UPDATE public."ChargingStations" SET "level" = "level"+5 WHERE "status" = false`);
         const disconnectingAGVUpdate = await pool.query(`UPDATE public."AGVs" SET "idOfStationConnected" = null, "status" = true, "chargeLevel" = 100
-                                                         WHERE "idOfStationConnected" = (SELECT "idOfChargingStation" from public."ChargingStations" WHERE "level">=100)`);
+                                                         WHERE "idOfStationConnected" IN (SELECT "idOfChargingStation" from public."ChargingStations" WHERE "level">=100)`);
         const disconnectingStationUpdate = await pool.query(`UPDATE public."ChargingStations" SET "level" = null, "status" = true WHERE "level" >= 100`);
         
 
