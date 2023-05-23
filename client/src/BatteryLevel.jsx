@@ -7,16 +7,12 @@ const BatteryLevel = (props) => {
   return (
     <Container>
       <AGVNumber>
-        {props.id}
+        {props.id}:
       </AGVNumber>
       <Battery>
-        {
-          props.status ?
-          (<Level bgColor={props.completed < 70 ? props.completed <=30 ? 'tomato' : 'gold' : 'springgreen'} completed={props.completed}>
-             <LevelLabel>{`${props.completed}%`}</LevelLabel>
-           </Level>) 
-           : (<p>Заряжается у станции номер {props.idOfStationConnected}</p>)
-        }
+          <Level bgColor={props.status ? props.completed < 70 ? props.completed <=30 ? 'tomato' : 'gold' : 'springgreen' : 'none'} completed={props.completed}>
+             <LevelLabel status={props.status}>{props.status ? `${props.completed}%` : `Заряжается у станции номер ${props.idOfStationConnected}`}</LevelLabel>
+           </Level>
       </Battery>
     </Container>
   );
@@ -25,10 +21,13 @@ export default BatteryLevel;
 
 const Container = styled.div`
   display: flex;
+  align-items: center;
 `
 const AGVNumber = styled.div`
   margin: 30px 0;
   margin-left: 30px;
+  width: 50px;
+  font-size: 24px;
 `
 const Level = styled.div`
     height: 100%;
@@ -36,6 +35,10 @@ const Level = styled.div`
     background-color: ${p => p.bgColor};
     border-radius: inherit;
     text-align: 'right';
+
+    line-height: 35px;
+
+    transition: 0.4s ease;
 `
 
 const Battery = styled.div`
@@ -48,5 +51,8 @@ const Battery = styled.div`
 
 const LevelLabel = styled.div`
   color: black;
-  font-weight: bold;
+  background: none;
+
+  ${p => !p.status && `width: 80vw`};
+  
 `

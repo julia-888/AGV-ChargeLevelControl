@@ -73,7 +73,11 @@ var munkres = require('munkres-js'); //используется реализов
 const stationChoice = (dischargedIds) => { //по горизонтали погрузчики, по вертикали станции
     const matrix = [];
     for (let i=0; i < dischargedIds.length; i++) {
-        matrix.push(dischargedIds[i].costs);
+        const costs = [];
+        for (let j=0; j < dischargedIds[i].costs.length; j++){
+            costs.push(dischargedIds[i].costs[j].cost);
+        }
+        matrix.push(costs);
     }
    return munkres(matrix);
 }
@@ -87,8 +91,8 @@ app.put('/AGVs', async (req, res) => {
         //повышение уровня заряжающихся погрузчиков и снятие с зарядки зарядившихся
         const increaseLevel = await pool.query(`UPDATE public."ChargingStations" SET "level" = "level"+5 WHERE "status" = false`);
         const disconnectingAGVUpdate = await pool.query(`UPDATE public."AGVs" SET "idOfStationConnected" = null, "status" = true, "chargeLevel" = 100
-                                                         WHERE "idOfStationConnected" = (SELECT "idOfChargingStation" from public."ChargingStations" WHERE "level"=100)`);
-        const disconnectingStationUpdate = await pool.query(`UPDATE public."ChargingStations" SET "level" = null, "status" = true WHERE "level" = 100`);
+                                                         WHERE "idOfStationConnected" = (SELECT "idOfChargingStation" from public."ChargingStations" WHERE "level">=100)`);
+        const disconnectingStationUpdate = await pool.query(`UPDATE public."ChargingStations" SET "level" = null, "status" = true WHERE "level" >= 100`);
         
 
         for (let i=0; i < req.body.dataForSending.length; i++){
@@ -120,7 +124,7 @@ app.put('/AGVs', async (req, res) => {
 
         //если массив разряженных погрузчиков чем-то заполнен, то:
         if (dischargedIds.length != 0) {
-            await axios.post('http://localhost:5001/charging', {dischargedIds}).then(response => dischargedIds = (response.data)).catch(err => console.log(err));
+            await axios.post('http://localhost:5001/charging:getCosts', {dischargedIds}).then(response => dischargedIds = (response.data)).catch(err => console.log(err));
         
             const choosedStations = stationChoice(dischargedIds); //результаты распределения
             console.log(choosedStations);
@@ -130,12 +134,12 @@ app.put('/AGVs', async (req, res) => {
             for (let i=0; i < choosedStations.length; i++) {
                 const connectToStationQuery = await pool.query(
                     `UPDATE public."ChargingStations" SET "status" = false, "level" = 25 WHERE "idOfChargingStation" = $1`,
-                    [choosedStations[i][1] + 1]
+                    [dischargedIds[i].costs[choosedStations[i][1]].stationId]
                 );
     
                 const goToStationQuery = await pool.query(
                     `UPDATE public."AGVs" SET "idOfStationConnected" = $1, "status"=false WHERE "idOfAGV" = $2`,
-                    [choosedStations[i][1] + 1, dischargedIds[i].id]
+                    [dischargedIds[i].costs[choosedStations[i][1]].stationId, dischargedIds[i].id]
                 );
             }
         }
@@ -145,7 +149,7 @@ app.put('/AGVs', async (req, res) => {
         const response3 = await pool.query(`SELECT * FROM public."Tasks" WHERE "completed" != true AND "startTime" = (
                                             SELECT "startTime" FROM public."Tasks" WHERE "completed" = false ORDER BY "idOfTask" LIMIT 1)`);
         
-        // console.log(response2.rows);
+        console.log(response2.rows);
         res.json({AGVs: response1.rows, chargingStations: response2.rows, tasks: response3.rows});
     } catch (err) {
         console.error(err.message)

@@ -75,24 +75,23 @@ function App() {
 
   return (
     <div className="App">
+        <Execute onClick={handleClick}>
+          Выполнить
+        </Execute>
+      
       <h1>Контроль и управление зарядом погрузчиков</h1>
-
-      <Execute onClick={handleClick}>
-        Выполнить
-      </Execute>
-
-      <h3>Погрузчики</h3>
+      <h2>Погрузчики</h2>
       {AGVs.map(agv => {
         return(
           <BatteryLevel completed={agv.chargeLevel} id={agv.idOfAGV} status={agv.status} idOfStationConnected={agv.idOfStationConnected}/>
         );
       })}
 
-      <h3>Зарядные станции</h3>
+      <h2>Зарядные станции</h2>
       <div>
       {chargingStations.map(chargingStation => {
         return(
-          <ChargingStation id={chargingStation.idOfChargingStation} status={chargingStation.status}/>
+          <ChargingStation id={chargingStation.idOfChargingStation} status={chargingStation.status} level={chargingStation.level} />
         );
       })}
       </div>
@@ -104,11 +103,16 @@ const Execute = styled.div`
   padding: 10px;
   width: 80px;
   margin: 30px;
-  background-color: honeydew;
-  border: solid green 1px;
+  background-color: Aquamarine;
+  border: solid green 2px;
   border-radius: 10px;
 
   cursor: pointer;
+  font-weight: lighter;
+
+  position: fixed;
+  top: 86vh;
+  left: 90vw;
 `
 
 

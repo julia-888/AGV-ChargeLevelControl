@@ -24,10 +24,10 @@ app.get("/", function(req, res) {
 
 
 //функция расчёта стоимостей подъезда к зарядной станции
-const countCosts = (idOfAGV) => {
+const countCosts = (stations) => {
     const costs = [];
-    for (i = 0; i < 6; i++) {
-        costs.push(Math.round(Math.random() * (30 - 8) + 8));
+    for (i = 0; i < stations.length; i++) {
+        costs.push({stationId: stations[i].idOfChargingStation, cost: Math.round(Math.random() * (30 - 8) + 8)});
     }
     return costs;
     //функция должна строить маршрут и оценивать стоимость в зависимости от его длины и наличия пересечений с другими
@@ -38,10 +38,12 @@ const countCosts = (idOfAGV) => {
 }
 
 // post-запрос для расчёта стоимостей
-app.post('/charging', (req, res) => { 
+app.post('/charging:getCosts', async(req, res) => { 
     let dischargedIds = req.body.dischargedIds;
+    // const stations =  await pool.query(`SELECT "idOfChargingStation" FROM public."ChargingStations" WHERE "status"=true`);
     for (let i=0; i < dischargedIds.length; i++) {
-        dischargedIds[i].costs = countCosts(dischargedIds[i].id)
+        dischargedIds[i].costs = countCosts(
+            (await pool.query(`SELECT "idOfChargingStation" FROM public."ChargingStations" WHERE "status"=true`)).rows);
     }
     res.send(dischargedIds);
 })

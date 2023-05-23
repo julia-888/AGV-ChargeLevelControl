@@ -1,3 +1,11 @@
 .App {
   text-align: center;
+
+  font-family: Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+
+}
+
+* {
+  background: azure;
+  font-weight: bold;
 }

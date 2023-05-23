@@ -7,11 +7,11 @@ const ChargingStation = (props) => {
   return (
     <ChargingWrap>
       <Station color={props.status ? "springgreen" : "tomato"}>
-        <AGVNumber>
+        <StationNumber>
           {props.id}
-        </AGVNumber>
+        </StationNumber>
       </Station>
-      {!props.status && <span> До конца зарядки осталос: 45 %</span>}
+      {!props.status && <div> До конца процесса зарядки осталось: {100 - props.level} %</div>}
     </ChargingWrap>
   );
 };
@@ -19,13 +19,12 @@ const ChargingStation = (props) => {
 export default ChargingStation;
 
 const Station = styled.div`
-    width: 50px;
-    height: 50px;
+    width: 65px;
+    height: 65px;
     border-radius: 100%;
     border: solid black 2px;
     
-    margin-left: 60px;
-    margin-bottom: 30px;
+    margin: 0 60px;
     background-color: ${p => p.color};
 
     display: flex;
@@ -33,18 +32,16 @@ const Station = styled.div`
     align-items: center;
 `
 
-const Container = styled.div`
-  display: flex;
-`
 
 const ChargingWrap = styled.div`
   display: flex;
+  align-items: center;
   width: 80%;
-  justify-content: space-between;
   margin: 30px 0 80px 0;
 `
 
-const AGVNumber = styled.div`
-  /* margin: 30px 0; */
-  /* margin-left: 30px; */
+const StationNumber = styled.div`
+  background: none;
+  
+  font-size: 20px;
 `
