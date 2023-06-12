@@ -106,11 +106,9 @@ const Execute = styled.div`
   background-color: Aquamarine;
   border: solid green 2px;
   border-radius: 10px;
-
   user-select: none;
   cursor: pointer;
   font-weight: lighter;
-
   position: fixed;
   top: 86vh;
   left: 90vw;
